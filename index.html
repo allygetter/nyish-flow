@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><meta name="theme-color" content="#c2603f"><title>Nyish Flow — Cycle Tracker</title>
+<style>
+:root{--bg:#f7efe3;--card:#fffaf2;--ink:#3b2a22;--mute:#8a7568;--terra:#c2603f;--sage:#8fa98b;--sand:#e8d5b5;--line:#ecdcc4;--rose:#d89a86;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#241a15;--card:#2f221b;--ink:#f3e6d6;--mute:#b3a090;--terra:#e0805f;--sage:#9db99a;--sand:#5a4636;--line:#443226;--rose:#e0a08c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#241a15;--card:#2f221b;--ink:#f3e6d6;--mute:#b3a090;--terra:#e0805f;--sage:#9db99a;--sand:#5a4636;--line:#443226;--rose:#e0a08c;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,'Iowan Old Style',serif;display:flex;justify-content:center}
+.app{width:100%;max-width:440px;min-height:100vh;padding:16px 16px 96px}
+h1,h2,h3{margin:0;font-weight:600}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:4px 4px 14px}
+.logo{font-size:26px;letter-spacing:.5px;color:var(--terra)}
+.sub{font:12px system-ui,sans-serif;color:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px}
+.sans{font-family:system-ui,sans-serif}
+.wheel{position:relative;width:240px;height:240px;margin:6px auto}
+.wheel .mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.big{font-size:44px;line-height:1;color:var(--terra)}
+.pill{display:inline-block;padding:3px 12px;border-radius:99px;background:var(--sand);font:13px system-ui,sans-serif;margin-top:6px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;font:12px system-ui,sans-serif;color:var(--mute)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--bg);border-radius:14px;padding:10px 12px}
+.stat b{display:block;font-size:18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:9px 14px;border-radius:99px;font:14px system-ui,sans-serif;cursor:pointer}
+.chip.on{background:var(--terra);border-color:var(--terra);color:#fff}
+.chip.sage.on{background:var(--sage);border-color:var(--sage);color:#1f2a1d}
+label.t{font:600 13px system-ui,sans-serif;color:var(--mute);text-transform:uppercase;letter-spacing:.6px}
+textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:14px;padding:10px;font:15px system-ui,sans-serif;min-height:70px;margin-top:8px}
+input[type=range]{width:100%;accent-color:var(--terra)}
+.btn{width:100%;border:0;background:var(--terra);color:#fff;padding:13px;border-radius:14px;font:600 16px system-ui,sans-serif;cursor:pointer;margin-top:10px}
+.btn.alt{background:var(--sage);color:#1f2a1d}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav div{display:flex;width:100%;max-width:440px}
+nav button{flex:1;border:0;background:none;color:var(--mute);padding:10px 0 8px;font:12px system-ui,sans-serif;cursor:pointer}
+nav button .ic{display:block;font-size:20px}
+nav button.on{color:var(--terra);font-weight:600}
+.bars{display:flex;align-items:flex-end;gap:10px;height:130px;margin-top:10px}
+.bar{flex:1;background:var(--sage);border-radius:8px 8px 0 0;position:relative;min-height:6px}
+.bar span{position:absolute;top:-18px;left:0;right:0;text-align:center;font:12px system-ui,sans-serif}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-family:system-ui,sans-serif}
+.row:last-child{border:0}
+.sw{width:44px;height:26px;border-radius:99px;background:var(--sand);position:relative;border:0;cursor:pointer;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on{background:var(--sage)}.sw.on::after{left:21px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font:14px system-ui,sans-serif;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+.view{display:none}.view.on{display:block}
+.calhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.calhd button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:6px 14px;font:16px system-ui,sans-serif;cursor:pointer}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.wd{text-align:center;font:600 11px system-ui,sans-serif;color:var(--mute);padding:4px 0}
+.cell{position:relative;aspect-ratio:1/1.05;border:1.5px solid transparent;border-radius:12px;background:var(--bg);color:var(--ink);font:14px system-ui,sans-serif;cursor:pointer;padding:0}
+.cell .bg{position:absolute;inset:0;border-radius:10px;background:color-mix(in srgb,var(--c,transparent) var(--a,0%),transparent)}
+.cell .n{position:relative;z-index:1}
+.cell.solid .n{color:#fff;font-weight:600}
+.cell.rng{border:1.5px dashed color-mix(in srgb,var(--terra) var(--a,50%),transparent)}
+.cell.today{outline:2px solid var(--ink);outline-offset:1px}
+.cell.sel{box-shadow:0 0 0 3px var(--sand)}
+.dots{position:absolute;bottom:4px;left:0;right:0;display:flex;justify-content:center;gap:3px;z-index:1}
+.dots i{width:6px;height:6px;border-radius:50%;display:block}
+.dots .s{background:var(--ink);opacity:.55}.dots .r{border:1.5px solid var(--terra);background:var(--card)}
+.hol{position:absolute;top:0;right:0;width:0;height:0;border-top:13px solid #bb1e10;border-left:13px solid transparent;border-top-right-radius:11px;z-index:1}
+.hl{display:inline-block;width:0;height:0;border-top:10px solid #bb1e10;border-left:10px solid transparent;margin-right:4px}
+.lg2 i.sq{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:4px;vertical-align:-1px}
+pre{white-space:pre-wrap;background:var(--bg);padding:12px;border-radius:12px;font:13px system-ui,sans-serif}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr"><div><div class="logo">Nyish Flow</div><div class="sub">Powered by Nyish Self-Help Group</div></div><div class="sub">🔒 On-device only</div></div>
+
+  <section class="view on" id="v-home">
+    <div class="card">
+      <div class="wheel"><svg id="wheel" viewBox="0 0 240 240" width="240" height="240"></svg>
+        <div class="mid"><div class="big" id="dayN">–</div><div class="sub">day of cycle</div><div class="pill" id="phase">–</div></div></div>
+      <div class="legend"><span><i style="background:var(--terra)"></i>Menstrual</span><span><i style="background:var(--sage)"></i>Follicular</span><span><i style="background:#e0b24f"></i>Ovulatory</span><span><i style="background:var(--rose)"></i>Luteal</span></div>
+    </div>
+    <div class="grid2">
+      <div class="stat"><span class="sub">Next period</span><b id="nextP">–</b></div>
+      <div class="stat"><span class="sub">Ovulation</span><b id="ov">–</b></div>
+      <div class="stat"><span class="sub">Fertile window</span><b id="fw">–</b></div>
+      <div class="stat"><span class="sub">Predicted cycle</span><b id="pl">–</b></div>
+    </div>
+    <div class="card" style="margin-top:14px"><label class="t">Today for you</label><p id="tip" class="sans" style="margin:8px 0 0"></p></div>
+  </section>
+
+  <section class="view" id="v-cal">
+    <div class="card">
+      <div class="calhd"><button id="calP" aria-label="Previous month">‹</button><div style="text-align:center"><h2 id="calT"></h2><button id="calTd" style="margin-top:4px;padding:2px 12px;font-size:12px">Today</button></div><button id="calN" aria-label="Next month">›</button></div>
+      <div class="cg" id="cg"></div>
+      <div class="legend lg2" style="margin-top:12px">
+        <span><i class="sq" style="background:var(--terra)"></i>Period</span>
+        <span><i class="sq" style="background:color-mix(in srgb,var(--terra) 35%,transparent)"></i>Predicted</span>
+        <span><i class="sq" style="border:1.5px dashed var(--terra)"></i>Likely range</span>
+        <span><i class="sq" style="background:var(--sage)"></i>Fertile</span>
+        <span><i class="sq" style="background:#e0b24f"></i>Ovulation</span>
+      </div>
+      <div class="legend" style="margin-top:8px">
+        <span><i style="background:#5aa9c9"></i>Mood</span>
+        <span><i style="background:var(--ink);opacity:.55"></i>Symptoms</span>
+        <span><i style="border:1.5px solid var(--terra);background:var(--card)"></i>Reminder</span>
+        <span><b class="hl"></b>Kenyan holiday</span>
+      </div>
+    </div>
+    <div class="card sans" id="calD"></div>
+    <p class="sub" style="padding:0 6px">Weeks start on Monday. Holidays that fall on a Sunday move to Monday. *Idd dates follow moon sighting and can shift by a day. Further-ahead predictions fade and widen; each cycle you log tightens them.</p>
+  </section>
+
+  <section class="view" id="v-log">
+    <div class="card">
+      <h2>How are you today?</h2>
+      <label class="t" style="display:block;margin-top:14px">Flow</label>
+      <div class="chips" data-single="flow"><button class="chip">None</button><button class="chip">Light</button><button class="chip">Medium</button><button class="chip">Heavy</button></div>
+      <label class="t">Symptoms</label>
+      <div class="chips sage" data-multi="sym"><button class="chip sage">🌀 Cramps</button><button class="chip sage">🎈 Bloating</button><button class="chip sage">✨ Acne</button><button class="chip sage">🤕 Headache</button><button class="chip sage">💧 Tender breasts</button><button class="chip sage">😴 Fatigue</button></div>
+      <label class="t">Mood</label>
+      <div class="chips" data-single="mood"><button class="chip">😊 Calm</button><button class="chip">😐 Flat</button><button class="chip">😤 Irritable</button><button class="chip">😢 Low</button><button class="chip">⚡ Upbeat</button></div>
+      <label class="t" style="display:block;margin-top:8px">Energy: <span id="enV">3</span>/5</label>
+      <input type="range" min="1" max="5" value="3" id="energy">
+      <label class="t" style="display:block;margin-top:10px">Private note</label>
+      <textarea id="note" placeholder="Anything you want to remember…"></textarea>
+      <button class="btn" id="save">Save today’s log</button>
+    </div>
+  </section>
+
+  <section class="view" id="v-ins">
+    <div class="card"><h2>Cycle length history</h2><div class="sub">Days per cycle · latest on the right</div><div class="bars" id="bars"></div>
+      <p class="sans" id="insTxt" style="margin:10px 0 0"></p></div>
+    <div class="card"><h2>Your logged symptoms</h2><div id="symList" class="sans" style="margin-top:8px"></div></div>
+    <div class="card"><h2>Doctor visit report</h2><p class="sub">A plain-text summary you choose to share. Nothing leaves your phone until you do.</p>
+      <button class="btn alt" id="gen">Generate summary</button><pre id="rep" style="display:none"></pre></div>
+  </section>
+
+  <section class="view" id="v-set">
+    <div class="card">
+      <div class="row"><div>App lock<div class="sub">PIN, Face ID or Touch ID</div></div><button class="sw on" data-sw></button></div>
+      <div class="row"><div>Discreet notifications<div class="sub">Shows “Nyish: a gentle check-in”</div></div><button class="sw on" data-sw></button></div>
+      <div class="row"><div>Period start reminder</div><button class="sw on" data-sw></button></div>
+      <div class="row"><div>Fertile window reminder</div><button class="sw" data-sw></button></div>
+      <div class="row"><div>Self-care reminder</div><button class="sw on" data-sw></button></div>
+      <div class="row"><div>Dark theme</div><button class="sw" id="theme"></button></div>
+    </div>
+    <div class="card"><h2>About Nyish</h2><p class="sans" style="margin:8px 0 0">Nyish is built and powered by the Nyish Self-Help Group, a community working to make cycle health knowledge private, practical and shared. Your data stays encrypted on your device. You decide what, if anything, leaves it.</p></div>
+  </section>
+</div>
+<nav><div id="nav"></div></nav>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- Prediction engine ----------
+const DAY=864e5, today=new Date(new Date().toDateString());
+const addD=(d,n)=>new Date(d.getTime()+n*DAY);
+const fmt=d=>d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+const lens=[28,30,27,29,31,28];           // demo history (days)
+const lastStart=addD(today,-11);          // demo: today = cycle day 12
+const LUTEAL=14;
+function wma(a){const r=a.slice(-6);let s=0,w=0;r.forEach((v,i)=>{s+=v*(i+1);w+=i+1});return s/w}
+function sd(a){const m=a.reduce((x,y)=>x+y,0)/a.length;return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length)}
+const L=Math.round(wma(lens)), irregular=sd(lens)>4;
+const ovDay=L-LUTEAL;                      // cycle day of ovulation
+const next=addD(lastStart,L), ovDate=addD(lastStart,ovDay-1);
+const cd=Math.round((today-lastStart)/DAY)+1;
+const phases=[
+ {n:'Menstrual',s:1,e:5,c:'var(--terra)'},
+ {n:'Follicular',s:6,e:ovDay-2,c:'var(--sage)'},
+ {n:'Ovulatory',s:ovDay-1,e:ovDay+1,c:'#e0b24f'},
+ {n:'Luteal',s:ovDay+2,e:L,c:'var(--rose)'}];
+const cur=phases.find(p=>cd>=p.s&&cd<=p.e)||phases[3];
+const tips={Menstrual:'Rest counts as progress. Warmth, iron-rich foods like lentils and greens, and gentle stretching can ease cramps.',
+Follicular:'Energy often rises now. A good window for strength training, new projects and brisk walks. Keep hydrating.',
+Ovulatory:'You may feel social and strong. Warm up well before intense workouts and eat protein with each meal.',
+Luteal:'Energy can dip. Favour steady meals with complex carbs and magnesium-rich foods, lighter exercise and earlier nights.'};
+
+// ---------- Home ----------
+const R=100,C=2*Math.PI*R;let sv='<circle cx="120" cy="120" r="'+R+'" fill="none" stroke="var(--line)" stroke-width="22"/>';
+phases.forEach(p=>{const len=(p.e-p.s+1)/L*C,off=-(p.s-1)/L*C;
+ sv+=`<circle cx="120" cy="120" r="${R}" fill="none" stroke="${p.c}" stroke-width="22" stroke-dasharray="${len-2} ${C-len+2}" stroke-dashoffset="${off}" transform="rotate(-90 120 120)"/>`});
+const ang=((cd-.5)/L)*2*Math.PI-Math.PI/2;
+sv+=`<circle cx="${120+R*Math.cos(ang)}" cy="${120+R*Math.sin(ang)}" r="11" fill="var(--card)" stroke="var(--ink)" stroke-width="3"/>`;
+document.getElementById('wheel').innerHTML=sv;
+const $=id=>document.getElementById(id);
+$('dayN').textContent=cd;$('phase').textContent=cur.n;
+$('nextP').textContent=fmt(next);$('ov').textContent=fmt(ovDate);
+$('fw').textContent=fmt(addD(ovDate,-5))+'–'+fmt(addD(ovDate,1));
+$('pl').textContent=L+' days'+(irregular?' ~':'');
+$('tip').textContent=tips[cur.n]+(irregular?' Your cycles vary a bit, so treat dates as estimates.':'');
+
+// ---------- Nav ----------
+const tabs=[['home','◔','Home'],['cal','▦','Calendar'],['log','✎','Log'],['ins','▥','Insights'],['set','⚙','Settings']];
+$('nav').innerHTML=tabs.map(t=>`<button data-t="${t[0]}"${t[0]=='home'?' class="on"':''}><span class="ic">${t[1]}</span>${t[2]}</button>`).join('');
+$('nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+ document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+b.dataset.t));window.scrollTo(0,0)};
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+
+// ---------- Logging ----------
+const logs=[];const sym={Cramps:4,Bloating:3,Fatigue:3,Acne:1}; // demo history counts
+document.querySelectorAll('[data-single]').forEach(g=>g.onclick=e=>{const b=e.target.closest('.chip');if(!b)return;g.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c===b))});
+document.querySelectorAll('[data-multi]').forEach(g=>g.onclick=e=>{const b=e.target.closest('.chip');if(b)b.classList.toggle('on')});
+$('energy').oninput=e=>$('enV').textContent=e.target.value;
+$('save').onclick=()=>{const g=k=>(document.querySelector(`[data-single=${k}] .on`)||{}).textContent||'';
+ const s=[...document.querySelectorAll('[data-multi=sym] .on')].map(x=>x.textContent.replace(/^\S+\s/,''));
+ s.forEach(n=>sym[n]=(sym[n]||0)+1);
+ logs.push({d:fmt(today),flow:g('flow'),mood:g('mood'),energy:$('energy').value,s});
+ renderSym();toast('Saved on this device 🌿')};
+function renderSym(){$('symList').innerHTML=Object.entries(sym).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="row"><span>${k}</span><b>${v} days</b></div>`).join('')}
+renderSym();
+
+// ---------- Insights ----------
+const mx=Math.max(...lens);
+$('bars').innerHTML=lens.map(v=>`<div class="bar" style="height:${v/mx*100}%"><span>${v}</span></div>`).join('');
+$('insTxt').textContent=`Weighted average (recent cycles count more): ${L} days. Variation: ±${sd(lens).toFixed(1)} days — ${irregular?'fairly irregular, so predictions show a wider range':'within a typical range'}.`;
+$('gen').onclick=()=>{const r=$('rep');r.style.display='block';
+ r.textContent=`NYISH FLOW CYCLE SUMMARY (${fmt(today)})\nLast ${lens.length} cycle lengths: ${lens.join(', ')} days\nPredicted cycle length: ${L} days\nLuteal phase assumed: ${LUTEAL} days\nTop symptoms: ${Object.entries(sym).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]).join(', ')}\nNote: self-tracked data, not a diagnosis.`;
+ try{navigator.clipboard.writeText(r.textContent);toast('Copied to clipboard')}catch(e){}};
+
+// ---------- Calendar (Kenya, Monday start) ----------
+const key=d=>d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+const KE_FIXED=[[1,1,"New Year's Day"],[5,1,'Labour Day'],[6,1,'Madaraka Day'],[10,10,'Mazingira Day'],[10,20,'Mashujaa Day'],[12,12,'Jamhuri Day'],[12,25,'Christmas Day'],[12,26,'Utamaduni Day']];
+const EID={2026:[[3,20],[5,27]],2027:[[3,10],[5,17]],2028:[[2,26],[5,5]],2029:[[2,14],[4,24]],2030:[[2,4],[4,13]]};
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),t=h+l-7*m+114;return new Date(y,Math.floor(t/31)-1,(t%31)+1)}
+const hc={};
+function holidays(y){if(hc[y])return hc[y];const m={};const put=(d,n)=>{const k=key(d);m[k]=m[k]?m[k]+' / '+n:n};
+ KE_FIXED.forEach(([mo,da,n])=>{const d=new Date(y,mo-1,da);put(d,n);if(d.getDay()===0)put(addD(d,1),n+' (observed)')});
+ const e=easter(y);put(addD(e,-2),'Good Friday');put(addD(e,1),'Easter Monday');
+ (EID[y]||[]).forEach((x,i)=>put(new Date(y,x[0]-1,x[1]),i?'Idd-ul-Azha*':'Idd-ul-Fitr*'));
+ return hc[y]=m}
+const starts=[];{let s=lastStart;for(let i=lens.length-1;i>=0;i--){s=addD(s,-lens[i]);starts.unshift(s)}}starts.push(lastStart);
+const SD=sd(lens),MOOD={Calm:'#7fb5a0',Flat:'#b8a898',Irritable:'#e08a4f',Low:'#6f7fb3',Upbeat:'#5aa9c9'},logMap={};
+function cday(d){let s=null;for(const x of starts)if(x<=d)s=x;return s?Math.round((d-s)/DAY):null}
+function demoLog(d){const n=Math.round((d-lastStart)/DAY);if(n>=0||n<-70||Math.round(d/DAY)%4===3)return null;const c=cday(d);if(c===null)return null;
+ return{flow:c<5?(c<2?'Medium':'Light'):'',mood:c<5?'Low':c<ovDay-2?'Upbeat':c<ovDay+2?'Calm':c>=L-6?'Irritable':'Flat',s:[].concat(c<3?['Cramps']:[],c>=L-6&&c<L-1?['Bloating']:[])}}
+const getLog=d=>logMap[key(d)]||demoLog(d);
+function info(d){const n=Math.round((d-lastStart)/DAY),r={t:'',a:0,rng:false,rem:'',k:0,u:0};
+ if(n<0){if(cday(d)!==null&&cday(d)<5){r.t='period';r.a=100}return r}
+ const k=Math.floor(n/L),off=n-k*L,conf=Math.max(.28,1-.13*k);r.k=k;r.u=k?Math.max(1,Math.round(SD*Math.sqrt(k))):0;r.a=k?Math.round(conf*65):85;
+ if(off<5){r.t='period';if(k===0&&d<=today)r.a=100}
+ else if(off===ovDay-1)r.t='ov';
+ else if(off>=ovDay-6&&off<=ovDay)r.t='fert';
+ else if(k>=1&&off<=4+r.u){r.rng=true}
+ else{const k2=k+1,u2=Math.max(1,Math.round(SD*Math.sqrt(k2)));if(off>=L-u2){r.rng=true;r.k=k2;r.u=u2;r.a=Math.round(Math.max(.28,1-.13*k2)*65)}}
+ if(off===ovDay-6)r.rem='Fertile window starts';
+ if(off===L-4)r.rem='Self-care day: rest, warmth, a slow evening';
+ if(off===L-2)r.rem='Period may start soon';
+ return r}
+const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+let vy=today.getFullYear(),vm=today.getMonth(),sel=today;
+const CC={period:'var(--terra)',ov:'#e0b24f',fert:'var(--sage)'};
+function renderCal(){$('calT').textContent=MN[vm]+' '+vy;
+ const pad=(new Date(vy,vm,1).getDay()+6)%7,nd=new Date(vy,vm+1,0).getDate(),hol=holidays(vy);
+ let h=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(w=>`<div class="wd">${w}</div>`).join('')+'<div></div>'.repeat(pad);
+ for(let day=1;day<=nd;day++){const d=new Date(vy,vm,day),i=info(d),lg=getLog(d);let t=i.t,a=i.a;
+  if(lg&&lg.flow&&lg.flow!=='None'){t='period';a=100;i.rng=false}
+  const cls=['cell'];if(t==='period'&&a>=80)cls.push('solid');if(i.rng&&!t)cls.push('rng');if(+d===+today)cls.push('today');if(+d===+sel)cls.push('sel');
+  const dots=(lg&&lg.mood&&MOOD[lg.mood]?`<i style="background:${MOOD[lg.mood]}"></i>`:'')+(lg&&lg.s&&lg.s.length?'<i class="s"></i>':'')+(i.rem?'<i class="r"></i>':'');
+  const aa=t?a:(i.rng?i.a:0);
+  h+=`<button class="${cls.join(' ')}" data-d="${day}" style="--c:${CC[t]||'transparent'};--a:${aa}%"><span class="bg"></span><span class="n">${day}</span>${hol[key(d)]?'<b class="hol"></b>':''}<span class="dots">${dots}</span></button>`}
+ $('cg').innerHTML=h;detail()}
+function detail(){const d=sel,i=info(d),lg=getLog(d),H=holidays(d.getFullYear())[key(d)],L2=[];
+ let t=(lg&&lg.flow&&lg.flow!=='None')?'period':i.t;const fut=d>today;
+ const nm={period:'Period',ov:'Ovulation (estimated)',fert:'Fertile window'};
+ if(nm[t])L2.push((fut||i.k>0?'Predicted: ':'')+nm[t]);
+ else if(i.rng)L2.push(`Period could start around here (±${i.u} day${i.u>1?'s':''})`);
+ if(fut&&i.k>0)L2.push(`Estimate widens with time: about ±${Math.max(1,Math.round(SD*Math.sqrt(i.k)))} days at this distance.`);
+ if(H)L2.push('🇰🇪 '+H);
+ if(i.rem)L2.push('🔔 '+i.rem);
+ if(lg&&(lg.mood||lg.flow||(lg.s&&lg.s.length)))L2.push('Logged: '+[lg.flow&&lg.flow!=='None'?lg.flow+' flow':'',lg.mood,(lg.s||[]).join(', ')].filter(Boolean).join(' · '));
+ else if(d<=today&&!L2.length)L2.push('Nothing logged this day.');
+ $('calD').innerHTML=`<b>${d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</b>`+L2.map(x=>`<div style="margin-top:6px">${x}</div>`).join('')}
+$('cg').onclick=e=>{const b=e.target.closest('.cell');if(!b)return;sel=new Date(vy,vm,+b.dataset.d);renderCal()};
+$('calP').onclick=()=>{vm--;if(vm<0){vm=11;vy--}renderCal()};
+$('calN').onclick=()=>{vm++;if(vm>11){vm=0;vy++}renderCal()};
+$('calTd').onclick=()=>{vy=today.getFullYear();vm=today.getMonth();sel=today;renderCal()};
+const _save=$('save').onclick;
+$('save').onclick=()=>{_save();const l=logs[logs.length-1];logMap[key(today)]={flow:l.flow,mood:l.mood.replace(/^\S+\s/,''),s:l.s};renderCal()};
+renderCal();
+
+// ---------- Settings ----------
+document.querySelectorAll('[data-sw]').forEach(s=>s.onclick=()=>s.classList.toggle('on'));
+$('theme').onclick=e=>{const on=e.target.classList.toggle('on');document.documentElement.dataset.theme=on?'dark':'light'};
+</script>
+<script>try{if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js")}catch(e){}</script></body>
+</html>
